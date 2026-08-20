@@ -1,0 +1,4 @@
+# OmniBenchmark Module Configuration
+
+entrypoints:
+  isomap: isomap.py
