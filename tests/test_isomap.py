@@ -2,6 +2,8 @@ from pathlib import Path
 
 import numpy as np
 
+import warnings
+
 from isomap import read_pca_embedding, run_isomap
 
 def test_read_pca_embedding(tmp_path: Path):
@@ -94,3 +96,35 @@ def test_isomap_geodesic_distances_on_line():
         rtol=1e-12,
         atol=1e-12,
     )
+def test_isomap_handles_disconnected_knn_graph():
+    embedding = np.array(
+        [
+            [0.0, 0.0],
+            [0.1, 0.0],
+            [0.2, 0.0],
+            [100.0, 0.0],
+            [100.1, 0.0],
+            [100.2, 0.0],
+        ],
+        dtype=np.float64,
+    )
+
+    with warnings.catch_warnings(record=True) as caught_warnings:
+        warnings.simplefilter("always")
+
+        isomap_embedding, geodesic_distances = run_isomap(
+            embedding,
+            n_neighbors=2,
+            n_components=2,
+        )
+        warning_messages = [str(warning.message) for warning in caught_warnings]
+
+    assert any(
+        "number of connected components" in message
+        and "2 > 1" in message
+        for message in warning_messages
+    )
+    assert isomap_embedding.shape == (6, 2)
+    assert geodesic_distances.shape == (6, 6)
+    assert np.isfinite(isomap_embedding).all()
+    assert np.isfinite(geodesic_distances).all()
