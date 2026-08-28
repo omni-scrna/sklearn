@@ -1,0 +1,18 @@
+{
+	"common": {
+		"repo": "https://github.com/omni-scrna/boilerplate",
+		"ref": "main",
+		"commit": "8a8ba8524939b49db1179b2da5687f99cceeb91b",
+		"lang": "python"
+	},
+	"schemas": [
+		{
+			"benchmark": "split-stages",
+			"repo": "https://github.com/omni-scrna/split-stages-plan",
+			"ref": "embedding-slice",
+			"commit": "53c81c7b61541ac04790169cbd2c43274e371f5a",
+			"files": ["ISOMAP", "_base"]
+		}
+	],
+	"fetched_at": "2026-08-28T16:14:05Z"
+}
