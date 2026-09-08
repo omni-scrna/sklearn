@@ -15,4 +15,4 @@ benchmarks:
   - name: split-stages
     repo: https://github.com/omni-scrna/split-stages-plan
     plan: benchmark_conda.yaml
-    ref: embedding-slice
+    ref: embed-gen
