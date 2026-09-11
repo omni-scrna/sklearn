@@ -31,3 +31,8 @@ Thumbs.db
 .pixi/*
 !.pixi/config.toml
 .Rproj.user
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
