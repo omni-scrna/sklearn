@@ -3,16 +3,19 @@
 
 Sibling of the PCA stage, not downstream of it: this module reads the same
 normalized_selected_h5 matrix PCA does and produces the same embedding_tsv
-output contract, so EMBED-M/NNG/GEOM-M can consume either interchangeably
+output contract, so EMBED_M/NNG/GEOM_M can consume either interchangeably
 (the ISOMAP stage declares embedding_tsv as an output, same id as PCA's).
 
 Output
 ------
-File: {output_dir}/{name}_embedding.tsv
+Each output goes to the path ob passes as `--output <id>=PATH` (api 0.8);
+without it, to the pre-0.8 `{output_dir}/{name}<suffix>` names below.
+
+File: {output_dir}/{name}_embedding.tsv   (output id: embedding_tsv)
   Same on-disk shape as scanpy/scrapper's PCA embedding TSV: header
   `cell_id  dim_1  ...  dim_{n_components}`, one row per cell. Columns are named dim_* rather than PC*.
 
-File: {output_dir}/{name}_geodesics.h5
+File: {output_dir}/{name}_geodesics.h5   (output id: geodesics_h5)
   Dense HDF5, (n_cells, n_sources), labelled on both axes -- see
   write_geodesics. The input load stays sparse (see load_matrix).
 
@@ -270,11 +273,13 @@ def main():
               f"({args.landmark_method}): geodesics {geodesic_distances.shape}")
 
     col_names = [f"dim_{i + 1}" for i in range(embedding.shape[1])]
-    embedding_out = Path(args.output_dir) / f"{args.name}_embedding.tsv"
+    embedding_out = cli.output_path(args, "embedding_tsv", "_embedding.tsv")
+    embedding_out.parent.mkdir(parents=True, exist_ok=True)
     write_embeddings(Embedding(embedding, cell_ids, col_names), embedding_out)
     print(f"  wrote: {embedding_out}")
 
-    geodesics_out = Path(args.output_dir) / f"{args.name}_geodesics.h5"
+    geodesics_out = cli.output_path(args, "geodesics_h5", "_geodesics.h5")
+    geodesics_out.parent.mkdir(parents=True, exist_ok=True)
     write_geodesics(cell_ids, geodesic_distances, geodesics_out,
                      args.n_neighbors, args.n_components, landmarks)
     print(f"  wrote: {geodesics_out}")

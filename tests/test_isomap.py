@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 import h5py
@@ -370,3 +371,28 @@ def test_write_geodesics_is_compressed_and_row_chunked(tmp_path: Path):
         d = h5["geodesic_distances"]
         assert d.compression == "gzip"
         assert d.chunks == (1, 40)   # one row per chunk
+
+
+def test_main_writes_to_the_output_paths_ob_passes(tmp_path: Path, monkeypatch):
+    # api 0.8: ob passes `--output <id>=PATH` per declared output. Both files
+    # must land there, not at the pre-0.8 `<output_dir>/<name>_*` defaults.
+    # (Before the cli sync, argparse read `--output` as an abbreviation of
+    # `--output_dir`, so the outputs went to a directory named `geodesics_h5=...`.)
+    import isomap
+
+    X = sp.csr_matrix(_swiss_roll(n=40))
+    h5 = tmp_path / "in.h5"
+    _write_matrix_h5(h5, X, [f"c{i}" for i in range(40)], ["g1", "g2"])
+    emb = tmp_path / "elsewhere" / "iso_embedding.tsv"
+    geo = tmp_path / "elsewhere" / "iso_geodesics.h5"
+    monkeypatch.setattr(sys, "argv", [
+        "isomap.py", "--output_dir", str(tmp_path / "od"), "--name", "iso",
+        "--normalized_selected_h5", str(h5),
+        "--n_neighbors", "5", "--n_components", "2",
+        "--output", f"embedding_tsv={emb}", "--output", f"geodesics_h5={geo}",
+    ])
+    isomap.main()
+
+    assert emb.is_file() and geo.is_file()
+    assert not (tmp_path / "od" / "iso_embedding.tsv").exists()
+    assert emb.read_text().splitlines()[0].split("\t") == ["cell_id", "dim_1", "dim_2"]
